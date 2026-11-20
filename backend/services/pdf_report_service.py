@@ -1,9 +1,10 @@
 import io
+import os
 from typing import Dict, Any
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, HRFlowable
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, HRFlowable, Image as RLImage
 
 def generate_ats_pdf_report(score_report: Dict[str, Any], candidate_name: str = "Candidate") -> bytes:
     """Generate professional, branded ATS Diagnostic PDF Report using ReportLab."""
@@ -95,11 +96,18 @@ def generate_ats_pdf_report(score_report: Dict[str, Any], candidate_name: str = 
 
     story = []
 
-    # 1. Header with Auriic Branding
-    story.append(Paragraph("AURIIC SERVICES", title_style))
+    # 1. Header with Auriic Branding & Official Logo
+    logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "public", "auriic-logo.png")
+    if os.path.exists(logo_path):
+        # 794x300 aspect ratio ~ 2.65
+        story.append(RLImage(logo_path, width=140, height=53))
+        story.append(Spacer(1, 6))
+    else:
+        story.append(Paragraph("AURIIC SERVICES", title_style))
+
     story.append(Paragraph("Free ATS Resume Compatibility & Optimization Diagnostic", subtitle_style))
-    story.append(Spacer(1, 10))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_emerald, spaceAfter=15))
+    story.append(Spacer(1, 8))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_emerald, spaceAfter=14))
 
     # 2. Executive Score Card
     mode_title = "General ATS Health Diagnostic (Mode A)" if score_report.get("mode") == "A" else "Target Job Description Alignment (Mode B)"
