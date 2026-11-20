@@ -5,7 +5,11 @@ import time
 import secrets
 from typing import Optional, Tuple
 
-STORAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "storage", "resumes")
+if os.environ.get("VERCEL") or not os.access(os.path.dirname(os.path.dirname(__file__)), os.W_OK):
+    STORAGE_DIR = "/tmp/auriic_data/storage/resumes"
+else:
+    STORAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "storage", "resumes")
+
 SECRET_KEY = os.getenv("AURIIC_STORAGE_SECRET", "auriic_ats_storage_hmac_secret_2026_prod")
 
 def ensure_storage_dir():
