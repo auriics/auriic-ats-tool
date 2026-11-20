@@ -56,7 +56,8 @@ def test_non_consenting_upload_stores_no_pii():
 
 def test_consenting_upload_and_repeat_upload_deduplication():
     """Verify consenting upload creates 1 lead, and second upload by same email adds submission without duplicate lead."""
-    email = "candidate_unique_test@auriic.co"
+    import uuid
+    email = f"candidate_unique_{uuid.uuid4().hex[:8]}@auriic.co"
     dummy_parse = {
         "raw_text": f"Candidate Name, email: {email}, phone: 555-987-6543",
         "contact_info": {"name": "Candidate Name", "email": email, "phone": "555-987-6543", "location": "Dallas, TX"},

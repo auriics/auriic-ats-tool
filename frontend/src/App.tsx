@@ -66,6 +66,8 @@ interface ATSReport {
   disclaimer: string;
 }
 
+const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || '';
+
 export default function App() {
   // Navigation & View states
   const [activeTab, setActiveTab] = useState<'checker' | 'privacy' | 'delete' | 'admin'>('checker');
@@ -165,7 +167,7 @@ export default function App() {
       formData.append('consent_given', consentGiven ? 'true' : 'false');
       formData.append('consent_marketing', consentMarketing ? 'true' : 'false');
 
-      const response = await fetch('/api/analyze', {
+      const response = await fetch(`${API_BASE}/api/analyze`, {
         method: 'POST',
         body: formData,
       });
@@ -192,7 +194,7 @@ export default function App() {
   const handleDownloadPDF = async () => {
     if (!report) return;
     try {
-      const response = await fetch('/api/download-report-pdf', {
+      const response = await fetch(`${API_BASE}/api/download-report-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -219,7 +221,7 @@ export default function App() {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch(`${API_BASE}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: adminPassword, totp_code: adminTotp }),
@@ -238,7 +240,7 @@ export default function App() {
 
   const loadAdminLeads = async (token: string) => {
     try {
-      const response = await fetch('/api/admin/leads', {
+      const response = await fetch(`${API_BASE}/api/admin/leads`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
@@ -307,7 +309,7 @@ export default function App() {
   const handleRequestDeletion = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/privacy/request-deletion', {
+      const response = await fetch(`${API_BASE}/api/privacy/request-deletion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: deleteEmail }),
@@ -323,7 +325,7 @@ export default function App() {
   const handleConfirmDeletion = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/privacy/confirm-deletion', {
+      const response = await fetch(`${API_BASE}/api/privacy/confirm-deletion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: deleteToken }),
