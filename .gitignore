@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+backend/venv/
+.pytest_cache/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Persistent data & local storage
+backend/data/*.db*
+backend/data/storage/resumes/*
+!backend/data/storage/resumes/.gitkeep
+
+# OS
+.DS_Store
+*.swp

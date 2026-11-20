@@ -1,0 +1,26 @@
+Amina Al-Mansoor
+Houston, TX | (555) 567-5432 | amina.almansoor@email.com | linkedin.com/in/amina-almansoor-energy
+
+PROFESSIONAL SUMMARY
+Senior Power Systems Electrical Engineer with 7+ years experience designing high-voltage (HV) substations, electrical power distribution grids, and SCADA protection systems for renewable and utility operators.
+
+TECHNICAL SKILLS
+Power Systems Design, High Voltage Substations (69kV - 345kV), SCADA, ETAP, Relay Protection & Coordination (SEL, GE), National Electrical Code (NEC), IEEE Standards, Renewable Energy Grid Interconnection, PLC Automation
+
+WORK EXPERIENCE
+Substation Electrical Engineer | CenterPoint Energy | 2020 - Present
+- Designed electrical single-line diagrams (SLD) and physical layouts for three new 138kV greenfield transmission substations.
+- Programmed and validated SEL microprocessor protection relays via ETAP short-circuit and arc-flash hazard studies.
+- Commissioned SCADA remote terminal units (RTU) over DNP3 protocols, enhancing substation real-time monitoring uptime to 99.98%.
+- Supervised field testing of high-voltage power transformers and gas-insulated switchgear (GIS).
+
+Electrical Systems Engineer | NextEra Energy Resources | 2017 - 2020
+- Modeled utility-scale solar photovoltaic (PV) interconnection studies for 250MW solar farm projects connected to ERCOT grid.
+- Optimized collector system cable sizing, reducing transmission line electrical losses by 3.2%.
+
+EDUCATION
+Master of Science in Electrical Engineering (Power Systems) | University of Houston | 2017
+Bachelor of Science in Electrical Engineering | Texas Tech University | 2015
+
+CERTIFICATIONS
+Engineer In Training (EIT) - Texas Board of Professional Engineers

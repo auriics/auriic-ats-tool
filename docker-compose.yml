@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  auriic-ats:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auriic-ats-checker
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - AURIIC_STORAGE_SECRET=auriic_production_hmac_secret_2026_change_me
+      - AURIIC_ADMIN_PASSWORD=AuriicAdmin2026!
+      - AURIIC_ADMIN_TOTP_SECRET=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP
+    volumes:
+      - auriic-data:/app/backend/data
+
+volumes:
+  auriic-data:
+    driver: local

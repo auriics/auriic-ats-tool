@@ -1,0 +1,9 @@
+Emily Watson | emily.w@email.com | (555) 999-0000
+COLUMN 1 (Left Margin)          COLUMN 2 (Right Margin)
+Languages: Java, C++            Work: Company A, 2022
+Tools: Git, Linux               Job: Built websites
+Frameworks: Spring              Tasks: Managed servers
+Projects: None                  School: College of Tech, 2021
+Table 1: Skill | Rating | Years
+Java   | 5/5    | 2
+C++    | 4/5    | 1

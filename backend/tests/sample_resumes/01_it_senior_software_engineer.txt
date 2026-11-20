@@ -1,0 +1,29 @@
+Alex Rivera
+San Francisco, CA | (555) 234-5678 | alex.rivera@email.com | linkedin.com/in/alexrivera-dev
+
+PROFESSIONAL SUMMARY
+Senior Software Engineer with 8+ years of experience designing, architecting, and scaling distributed cloud microservices in Python, Go, and React. Proven track record optimizing high-throughput APIs serving 10M+ daily active users.
+
+TECHNICAL SKILLS
+Languages: Python, Go, TypeScript, JavaScript, SQL
+Frameworks & Libraries: React, Node.js, FastAPI, Next.js, Redux
+Cloud & Infrastructure: AWS, Docker, Kubernetes, Terraform, CI/CD, Linux
+Databases: PostgreSQL, Redis, MongoDB
+
+WORK EXPERIENCE
+Senior Software Engineer | CloudScale Inc. | 2021 - Present
+- Architected and deployed microservices handling 25,000 requests/second, reducing system latency by 35%.
+- Spearheaded migration from monolithic architecture to Kubernetes on AWS, cutting monthly infrastructure cloud costs by $140,000.
+- Mentored a distributed team of 8 junior and mid-level engineers, enforcing strict CI/CD and TDD testing standards.
+- Designed real-time event streaming pipeline using Redis and Kafka, boosting data sync reliability to 99.99%.
+
+Software Engineer | DevTech Solutions | 2017 - 2021
+- Developed full-stack web applications using React and Python FastAPI, delivering 14 major customer-facing features on schedule.
+- Optimized slow PostgreSQL database queries and table indices, accelerating dashboard load times by 48%.
+- Automated end-to-end regression testing suites, decreasing production release defect rates by 22%.
+
+EDUCATION
+Bachelor of Science in Computer Science | University of California, Berkeley | 2017
+
+CERTIFICATIONS
+AWS Certified Solutions Architect - Associate

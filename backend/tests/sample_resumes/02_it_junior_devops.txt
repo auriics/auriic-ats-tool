@@ -1,0 +1,23 @@
+Samantha Chen
+Austin, TX | (555) 345-6789 | samantha.chen@email.com | linkedin.com/in/samanthachen-ops
+
+PROFESSIONAL SUMMARY
+DevOps & Cloud Engineer with 2 years of hands-on experience automating CI/CD pipelines, containerizing workloads, and managing cloud environments on AWS.
+
+TECHNICAL SKILLS
+Cloud: AWS, GCP, Azure
+Tools: Docker, Kubernetes, Terraform, Jenkins, GitHub Actions, Ansible
+Scripting & OS: Python, Bash, Shell, Linux, Git
+
+WORK EXPERIENCE
+Junior DevOps Engineer | NexaCorp Systems | 2023 - Present
+- Configured automated GitHub Actions workflows for 12 microservices, reducing deployment cycle time by 40%.
+- Provisioned repeatable cloud infrastructure across staging and production using Terraform on AWS.
+- Monitored cluster health using Prometheus and Grafana, identifying bottlenecks and resolving 95% of alerts within SLA.
+
+Cloud Support Specialist | HostTech LLC | 2022 - 2023
+- Resolved 250+ enterprise customer tickets regarding Linux server configurations and SSL certificates.
+- Automated daily backup verification routines using Python scripts, saving 5 hours of manual work weekly.
+
+EDUCATION
+Bachelor of Science in Information Technology | University of Texas at Austin | 2022

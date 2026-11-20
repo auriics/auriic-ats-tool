@@ -1,0 +1,26 @@
+Jonathan Pierce, CPA
+New York, NY | (555) 789-0123 | j.pierce.cpa@email.com | linkedin.com/in/jonathanpierce-finance
+
+PROFESSIONAL SUMMARY
+Certified Public Accountant (CPA) and Senior Financial Analyst with 7+ years of experience leading corporate budgeting, FP&A, discounted cash flow (DCF) modeling, and executive financial reporting for Fortune 500 financial institutions.
+
+CORE COMPETENCIES
+Financial Modeling (DCF, LBO, 3-Statement), FP&A, GAAP, Financial Statement Analysis, Variance Analysis, Budgeting & Forecasting, P&L Management, Sarbanes-Oxley (SOX), Internal Controls, Excel (Macros, VBA, PowerQuery), SAP Financials, QuickBooks, SQL
+
+WORK EXPERIENCE
+Senior Financial Analyst | Goldman Sachs Group | 2021 - Present
+- Formulated annual operating expense budget of $85M across 4 enterprise business divisions with 98.5% forecast accuracy.
+- Built complex dynamic financial forecast models in Excel/VBA, identifying $4.2M in annual recurring operational savings.
+- Prepared monthly executive board financial packages, synthesizing variance analyses and capital expenditure ROI calculations.
+- Ensured 100% compliance with GAAP, SOX Section 404, and SEC reporting guidelines during external Big 4 audits.
+
+Financial Analyst | Morgan Stanley | 2018 - 2021
+- Analyzed quarterly financial performance for $350M asset portfolio, highlighting cash burn deviations and revenue trends.
+- Automated monthly revenue reconciliation processes using SQL and Excel macros, reducing reporting turnaround by 3 days.
+
+EDUCATION
+Master of Business Administration (MBA) in Finance | NYU Stern School of Business | 2018
+Bachelor of Science in Accounting | Fordham University | 2016
+
+CERTIFICATIONS
+Certified Public Accountant (CPA) - New York State License
