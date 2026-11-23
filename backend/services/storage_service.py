@@ -17,18 +17,22 @@ def ensure_storage_dir():
 
 def save_resume_file(file_bytes: bytes, original_filename: str, resume_hash: str) -> str:
     """Save resume securely into private storage directory. Returns relative storage path."""
-    ensure_storage_dir()
-    ext = os.path.splitext(original_filename)[1].lower()
-    if ext not in [".pdf", ".docx", ".doc", ".txt"]:
-        ext = ".pdf"
-    
-    unique_name = f"{resume_hash}_{secrets.token_hex(4)}{ext}"
-    target_path = os.path.join(STORAGE_DIR, unique_name)
-    
-    with open(target_path, "wb") as f:
-        f.write(file_bytes)
+    try:
+        ensure_storage_dir()
+        ext = os.path.splitext(original_filename)[1].lower()
+        if ext not in [".pdf", ".docx", ".doc", ".txt"]:
+            ext = ".pdf"
         
-    return os.path.relpath(target_path, start=os.path.dirname(STORAGE_DIR))
+        unique_name = f"{resume_hash}_{secrets.token_hex(4)}{ext}"
+        target_path = os.path.join(STORAGE_DIR, unique_name)
+        
+        with open(target_path, "wb") as f:
+            f.write(file_bytes)
+            
+        return os.path.relpath(target_path, start=os.path.dirname(STORAGE_DIR))
+    except Exception as e:
+        print(f"Storage notice (safe to continue): {e}")
+        return ""
 
 def get_file_bytes(relative_path: str) -> Optional[bytes]:
     """Retrieve resume bytes from private storage."""

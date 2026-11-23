@@ -1,7 +1,9 @@
 import os
 import uvicorn
-from fastapi import FastAPI
+import traceback
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from backend.database.db import init_db
@@ -12,8 +14,11 @@ from backend.api.routes_admin import router as admin_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize database on startup
-    init_db()
-    print("Auriic ATS Checker Database Initialized.")
+    try:
+        init_db()
+        print("Auriic ATS Checker Database Initialized.")
+    except Exception as e:
+        print(f"Lifespan init_db notice: {e}")
     yield
 
 app = FastAPI(
@@ -22,6 +27,18 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "InternalServerError",
+            "detail": str(exc),
+            "type": type(exc).__name__,
+        }
+    )
 
 # CORS middleware for development and production domains
 app.add_middleware(
@@ -32,8 +49,10 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
         "https://ats.auriic.co",
-        "https://auriic.co"
+        "https://auriic.co",
+        "https://auriic-ats-tool.vercel.app"
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -44,11 +44,10 @@ from backend.engine.normalizer import (
 )
 from backend.engine.industry_detector import detect_industry
 
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "scoring_config.yaml")
+from backend.config.loader import load_scoring_config
 
 def get_config() -> Dict[str, Any]:
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    return load_scoring_config()
 
 # Seniority patterns
 SENIORITY_RANKS = {

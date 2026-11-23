@@ -7,12 +7,10 @@ import yaml
 
 from backend.database.db import query_one, query_all, execute
 from backend.services.storage_service import save_resume_file
-
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "scoring_config.yaml")
+from backend.config.loader import load_scoring_config
 
 def get_config() -> Dict[str, Any]:
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    return load_scoring_config()
 
 def hash_ip(ip_address: Optional[str]) -> str:
     """Hash client IP with a salt for privacy-preserving rate limiting and audit records."""

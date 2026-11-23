@@ -1,13 +1,7 @@
 import os
-import yaml
 from typing import Dict, List, Any, Optional
 from backend.engine.normalizer import normalize_for_matching, tokenize_and_lemmatize
-
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "scoring_config.yaml")
-
-def load_scoring_config() -> Dict[str, Any]:
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+from backend.config.loader import load_scoring_config
 
 def detect_industry(text: str, user_override: Optional[str] = None) -> Dict[str, Any]:
     """Detect the most likely industry group among the 8 Auriic domains or apply user override."""

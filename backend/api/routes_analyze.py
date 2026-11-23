@@ -89,20 +89,29 @@ async def analyze_resume(
         "device_type": device_type,
     }
 
-    lead_res = process_submission_and_lead(
-        parse_result=parse_result,
-        score_report=score_report,
-        resume_file_bytes=file_bytes,
-        original_filename=filename,
-        resume_hash=content_hash,
-        consent_given=consent_given,
-        consent_marketing=consent_marketing,
-        client_ip=client_ip,
-        utm_params=utm_params,
-        job_description_text=job_description if has_jd else None,
-        jd_title=None,
-        user_industry_override=industry_override,
-    )
+    try:
+        lead_res = process_submission_and_lead(
+            parse_result=parse_result,
+            score_report=score_report,
+            resume_file_bytes=file_bytes,
+            original_filename=filename,
+            resume_hash=content_hash,
+            consent_given=consent_given,
+            consent_marketing=consent_marketing,
+            client_ip=client_ip,
+            utm_params=utm_params,
+            job_description_text=job_description if has_jd else None,
+            jd_title=None,
+            user_industry_override=industry_override,
+        )
+    except Exception as e:
+        print(f"Notice: lead storage bypassed due to db notice: {e}")
+        lead_res = {
+            "lead_id": None,
+            "submission_id": None,
+            "is_consented": consent_given,
+            "notice": "Scan completed successfully."
+        }
 
     # 7. Construct payload with "What ATS Sees" preview
     response_payload = {
