@@ -254,7 +254,7 @@ export default function App() {
 
   const viewLeadDetail = async (leadId: number) => {
     try {
-      const response = await fetch(`/api/admin/leads/${leadId}`, {
+      const response = await fetch(`${API_BASE}/api/admin/leads/${leadId}`, {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
       if (response.ok) {
@@ -270,7 +270,7 @@ export default function App() {
 
   const updateLeadStatus = async (leadId: number) => {
     try {
-      const response = await fetch(`/api/admin/leads/${leadId}`, {
+      const response = await fetch(`${API_BASE}/api/admin/leads/${leadId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -291,7 +291,7 @@ export default function App() {
   const deleteLeadAdmin = async (leadId: number) => {
     if (!confirm('Are you sure you want to permanently delete this lead and scrub all files?')) return;
     try {
-      const response = await fetch(`/api/admin/leads/${leadId}`, {
+      const response = await fetch(`${API_BASE}/api/admin/leads/${leadId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${adminToken}` },
       });
@@ -1054,7 +1054,9 @@ export default function App() {
                   </div>
                   <div className="flex items-center gap-3">
                     <a
-                      href="/api/admin/export/csv"
+                      href={`${API_BASE}/api/admin/export/csv?token=${encodeURIComponent(adminToken || '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="px-4 py-2.5 bg-[#027A68] hover:bg-[#01584B] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs"
                     >
                       <Download className="w-3.5 h-3.5" />
