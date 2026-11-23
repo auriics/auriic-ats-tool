@@ -119,7 +119,9 @@ async def get_leads(
         SELECT l.*, 
                s.ats_score, s.mode as latest_mode, s.score_label, s.id as latest_submission_id
         FROM ats_leads l
-        LEFT JOIN ats_submissions s ON s.lead_id = l.id
+        LEFT JOIN ats_submissions s ON s.id = (
+            SELECT id FROM ats_submissions sub WHERE sub.lead_id = l.id ORDER BY sub.id DESC LIMIT 1
+        )
         WHERE l.deleted_at IS NULL AND l.consent_given = TRUE
     """
     params = []
@@ -148,7 +150,7 @@ async def get_leads(
     if marketing_only:
         sql += " AND l.consent_marketing = TRUE"
 
-    sql += " GROUP BY l.id ORDER BY l.created_at DESC"
+    sql += " ORDER BY l.created_at DESC"
 
     leads = query_all(sql, tuple(params))
     return {"leads": leads, "count": len(leads)}
@@ -224,9 +226,10 @@ async def export_leads_csv():
                l.detected_industry, l.lead_status, l.lead_score_category, l.lead_score_reason,
                l.consent_given, l.consent_marketing, s.ats_score, s.mode
         FROM ats_leads l
-        LEFT JOIN ats_submissions s ON s.lead_id = l.id
+        LEFT JOIN ats_submissions s ON s.id = (
+            SELECT id FROM ats_submissions sub WHERE sub.lead_id = l.id ORDER BY sub.id DESC LIMIT 1
+        )
         WHERE l.deleted_at IS NULL AND l.consent_given = TRUE
-        GROUP BY l.id
         ORDER BY l.created_at DESC
     """
     leads = query_all(sql)
