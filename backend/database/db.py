@@ -1,15 +1,45 @@
 import os
 import sqlite3
 import json
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from contextlib import contextmanager
 from typing import Generator, Any, Dict, List, Optional
 
+ALLOWED_LIBPQ_PARAMS = {
+    "sslmode", "sslcompression", "sslcert", "sslkey", "sslrootcert",
+    "sslcrl", "requirepeer", "krbsrvname", "gsslib", "connect_timeout",
+    "client_encoding", "options", "application_name", "fallback_application_name",
+    "keepalives", "keepalives_idle", "keepalives_interval", "keepalives_count",
+    "tcp_user_timeout", "replication", "target_session_attrs"
+}
+
+def clean_database_url(url: str) -> str:
+    """Strip unsupported parameters like ?pgbouncer=true which break libpq / psycopg2."""
+    if not url:
+        return url
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    
+    try:
+        parsed = urlparse(url)
+        if not parsed.netloc:
+            return url
+        qs = parse_qs(parsed.query)
+        # Filter only valid libpq parameters
+        cleaned_qs = {k: v for k, v in qs.items() if k.lower() in ALLOWED_LIBPQ_PARAMS}
+        # Ensure sslmode=require for cloud providers like Supabase
+        if "sslmode" not in cleaned_qs and ("supabase.co" in parsed.netloc or "supabase.com" in parsed.netloc):
+            cleaned_qs["sslmode"] = ["require"]
+        clean_query = urlencode(cleaned_qs, doseq=True)
+        return urlunparse(parsed._replace(query=clean_query))
+    except Exception:
+        return url
+
 def get_db_info():
     """Retrieve database URL and postgres boolean dynamically."""
-    db_url = os.getenv("DATABASE_URL")
-    is_postgres = bool(db_url and (db_url.startswith("postgresql://") or db_url.startswith("postgres://")))
-    if is_postgres and db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    raw_url = os.getenv("DATABASE_URL")
+    is_postgres = bool(raw_url and (raw_url.startswith("postgresql://") or raw_url.startswith("postgres://")))
+    db_url = clean_database_url(raw_url) if is_postgres else raw_url
     return db_url, is_postgres
 
 DATABASE_URL, IS_POSTGRES = get_db_info()
