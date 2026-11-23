@@ -86,7 +86,7 @@ async def get_leads(
                s.ats_score, s.mode as latest_mode, s.score_label, s.id as latest_submission_id
         FROM ats_leads l
         LEFT JOIN ats_submissions s ON s.lead_id = l.id
-        WHERE l.deleted_at IS NULL AND l.consent_given = 1
+        WHERE l.deleted_at IS NULL AND l.consent_given = TRUE
     """
     params = []
 
@@ -112,7 +112,7 @@ async def get_leads(
         params.extend([search_term, search_term, search_term, search_term, search_term])
 
     if marketing_only:
-        sql += " AND l.consent_marketing = 1"
+        sql += " AND l.consent_marketing = TRUE"
 
     sql += " GROUP BY l.id ORDER BY l.created_at DESC"
 
@@ -191,7 +191,7 @@ async def export_leads_csv():
                l.consent_given, l.consent_marketing, s.ats_score, s.mode
         FROM ats_leads l
         LEFT JOIN ats_submissions s ON s.lead_id = l.id
-        WHERE l.deleted_at IS NULL AND l.consent_given = 1
+        WHERE l.deleted_at IS NULL AND l.consent_given = TRUE
         GROUP BY l.id
         ORDER BY l.created_at DESC
     """
