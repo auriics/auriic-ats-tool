@@ -4,17 +4,15 @@ import json
 from contextlib import contextmanager
 from typing import Generator, Any, Dict, List, Optional
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+def get_db_info():
+    """Retrieve database URL and postgres boolean dynamically."""
+    db_url = os.getenv("DATABASE_URL")
+    is_postgres = bool(db_url and (db_url.startswith("postgresql://") or db_url.startswith("postgres://")))
+    if is_postgres and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    return db_url, is_postgres
 
-# Check if using PostgreSQL / Supabase
-IS_POSTGRES = bool(DATABASE_URL and (DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("postgres://")))
-
-if IS_POSTGRES:
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
-    # Handle Supabase pooler / postgres:// vs postgresql:// prefix
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+DATABASE_URL, IS_POSTGRES = get_db_info()
 
 if os.environ.get("VERCEL") or not os.access(os.path.dirname(os.path.dirname(__file__)), os.W_OK):
     DB_DIR = "/tmp/auriic_data"
@@ -40,8 +38,11 @@ def _find_migration_file(filename: str) -> Optional[str]:
     return None
 
 def _create_raw_connection():
-    if IS_POSTGRES:
-        return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    db_url, is_postgres = get_db_info()
+    if is_postgres:
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+        return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
     else:
         os.makedirs(DB_DIR, exist_ok=True)
         conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
@@ -54,7 +55,8 @@ def init_db():
     if _initialized:
         return
 
-    if IS_POSTGRES:
+    db_url, is_postgres = get_db_info()
+    if is_postgres:
         try:
             conn = _create_raw_connection()
             try:
@@ -113,7 +115,8 @@ def get_connection():
 
 def _adapt_sql(sql: str) -> str:
     """Adapt SQL placeholders and types between SQLite and PostgreSQL."""
-    if IS_POSTGRES:
+    _, is_postgres = get_db_info()
+    if is_postgres:
         return sql.replace("?", "%s")
     return sql
 
@@ -138,9 +141,10 @@ def execute(sql: str, params: tuple = ()) -> int:
     is_insert = sql.strip().upper().startswith("INSERT")
     sql = _adapt_sql(sql)
 
+    _, is_postgres = get_db_info()
     with get_connection() as conn:
         cursor = conn.cursor()
-        if IS_POSTGRES:
+        if is_postgres:
             if is_insert and "RETURNING" not in sql.upper():
                 sql = sql.rstrip("; ") + " RETURNING id;"
                 cursor.execute(sql, params)

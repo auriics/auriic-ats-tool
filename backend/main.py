@@ -65,11 +65,36 @@ app.include_router(admin_router)
 
 @app.get("/api/health")
 async def health_check():
+    from backend.database.db import IS_POSTGRES, DATABASE_URL, query_one
+    db_type = "postgres" if IS_POSTGRES else "sqlite"
+    db_connected = False
+    db_error = None
+    leads_count = 0
+    submissions_count = 0
+    try:
+        row = query_one("SELECT count(*) as count FROM ats_leads")
+        if row:
+            leads_count = row.get("count", 0)
+        sub_row = query_one("SELECT count(*) as count FROM ats_submissions")
+        if sub_row:
+            submissions_count = sub_row.get("count", 0)
+        db_connected = True
+    except Exception as e:
+        db_error = str(e)
+
     return {
         "status": "healthy",
         "service": "Auriic Free ATS Resume Checker",
         "scoring_version": "1.0.0",
         "engine": "Deterministic-Rule-Based",
+        "database": {
+            "type": db_type,
+            "has_database_url": bool(DATABASE_URL),
+            "connected": db_connected,
+            "leads_count": leads_count,
+            "submissions_count": submissions_count,
+            "error": db_error,
+        }
     }
 
 # Production: Serve React Frontend SPA if built

@@ -94,7 +94,7 @@ def process_submission_and_lead(
                 lead_id, created_at, mode, scoring_version, ats_score, score_label,
                 category_scores, top_missing_keywords, job_description_text, jd_title,
                 resume_file_path, extracted_text, resume_hash, deductions_json, is_anonymous
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)
         """
         sub_id = execute(sub_sql, (
             None,
@@ -184,7 +184,7 @@ def process_submission_and_lead(
             json.dumps(parse_result.get("certifications", [])),
             lead_score_category,
             lead_score_reason,
-            1 if consent_marketing else 0,
+            bool(consent_marketing),
             now_iso,
             lead_id,
         ))
@@ -219,8 +219,8 @@ def process_submission_and_lead(
             utm.get("utm_campaign"),
             utm.get("referrer"),
             utm.get("device_type", "desktop"),
-            1,
-            1 if consent_marketing else 0,
+            True,
+            bool(consent_marketing),
             "1.0",
             now_iso,
             ip_hash_val,
@@ -235,7 +235,7 @@ def process_submission_and_lead(
             lead_id, created_at, mode, scoring_version, ats_score, score_label,
             category_scores, top_missing_keywords, job_description_text, jd_title,
             resume_file_path, extracted_text, resume_hash, deductions_json, is_anonymous
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE)
     """
     sub_id = execute(sub_sql, (
         lead_id,

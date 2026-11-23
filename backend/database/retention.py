@@ -53,7 +53,7 @@ def purge_lead_pii(lead_id: int, actor: str = "admin") -> bool:
             resume_file_path = NULL,
             extracted_text = NULL,
             job_description_text = NULL,
-            is_anonymous = 1
+            is_anonymous = TRUE
         WHERE lead_id = ?
     """, (lead_id,))
 
