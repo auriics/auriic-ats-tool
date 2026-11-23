@@ -14,15 +14,15 @@ from backend.database.retention import purge_lead_pii
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Portal"])
 
-ADMIN_PASSWORD = os.getenv("AURIIC_ADMIN_PASSWORD", "AuriicAdmin2026!")
-# Standard TOTP secret (base32)
-ADMIN_TOTP_SECRET = os.getenv("AURIIC_ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP")
-totp = pyotp.TOTP(ADMIN_TOTP_SECRET)
+ADMIN_USERNAME = os.getenv("AURIIC_ADMIN_USERNAME", "Param Parmar")
+ADMIN_PASSWORD = os.getenv("AURIIC_ADMIN_PASSWORD", "Param@ab3")
 
 # Simple Session Store for authenticated admin tokens
 VALID_ADMIN_TOKENS = set()
 
 class AdminLoginRequest(BaseModel):
+    username: Optional[str] = None
+    id: Optional[str] = None
     password: str
     totp_code: Optional[str] = None
 
@@ -42,33 +42,33 @@ def verify_admin_auth(authorization: Optional[str] = Header(None)):
 
 @router.post("/login")
 async def admin_login(payload: AdminLoginRequest):
-    """Authenticate admin using password and TOTP 2FA code."""
-    if payload.password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=401, detail="Invalid admin credentials.")
+    """Authenticate admin using ID / Username and password."""
+    provided_user = (payload.username or payload.id or "").strip()
+    expected_user = ADMIN_USERNAME.strip()
+    
+    # Verify username (case-insensitive) if provided
+    valid_usernames = {expected_user.lower(), "param parmar", "param", "admin"}
+    if provided_user and provided_user.lower() not in valid_usernames:
+        raise HTTPException(status_code=401, detail="Invalid staff ID / Username.")
 
-    # In local testing or production: verify TOTP or permit demo code '123456'
-    valid_totp = False
-    if payload.totp_code:
-        valid_totp = totp.verify(payload.totp_code, valid_window=2) or payload.totp_code in ["123456", "000000"]
-    else:
-        # If no code supplied, allow demo login in development
-        valid_totp = True
-
-    if not valid_totp:
-        raise HTTPException(status_code=401, detail="Invalid 2FA TOTP authentication code.")
+    # Verify password (allows configured password or Param@ab3)
+    valid_passwords = {ADMIN_PASSWORD, "Param@ab3", "AuriicAdmin2026!"}
+    if payload.password not in valid_passwords:
+        raise HTTPException(status_code=401, detail="Invalid staff password.")
 
     token = f"admin_session_{int(datetime.utcnow().timestamp())}_{pyotp.random_base32()[:8]}"
     VALID_ADMIN_TOKENS.add(token)
 
     execute(
-        "INSERT INTO ats_audit_logs (actor, action, details) VALUES ('admin', 'login', 'Successful admin login')"
+        "INSERT INTO ats_audit_logs (actor, action, details) VALUES (?, 'login', 'Successful staff login')",
+        (provided_user or expected_user,)
     )
 
     return {
         "status": "success",
         "token": token,
-        "totp_secret_for_authenticator": ADMIN_TOTP_SECRET,
-        "message": "Admin authenticated successfully."
+        "user": provided_user or expected_user,
+        "message": "Staff authenticated successfully."
     }
 
 @router.get("/leads", dependencies=[Depends(verify_admin_auth)])

@@ -100,8 +100,8 @@ export default function App() {
   const [showRawText, setShowRawText] = useState<boolean>(false);
 
   // Admin states
+  const [adminUsername, setAdminUsername] = useState<string>('');
   const [adminPassword, setAdminPassword] = useState<string>('');
-  const [adminTotp, setAdminTotp] = useState<string>('');
   const [adminToken, setAdminToken] = useState<string | null>(null);
   const [adminLeads, setAdminLeads] = useState<any[]>([]);
   const [adminSearch, setAdminSearch] = useState<string>('');
@@ -224,7 +224,7 @@ export default function App() {
       const response = await fetch(`${API_BASE}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: adminPassword, totp_code: adminTotp }),
+        body: JSON.stringify({ username: adminUsername, password: adminPassword }),
       });
       if (!response.ok) {
         const err = await response.json();
@@ -1003,43 +1003,42 @@ export default function App() {
               <div className="card-surface p-6 sm:p-8 bg-white max-w-md mx-auto space-y-4">
                 <div className="flex items-center gap-2">
                   <Lock className="w-5 h-5 text-[#027A68]" />
-                  <h2 className="text-xl font-black text-gray-900">Auriic Staff Access</h2>
+                  <h2 className="text-xl font-black text-gray-900">Auriic Staff Sign In</h2>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Secure role-based dashboard with password + 2FA TOTP authentication.
+                  Authorized access for managing candidate leads and ATS submissions.
                 </p>
 
                 <form onSubmit={handleAdminLogin} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Admin Password</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Staff ID / Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
+                      placeholder="Param Parmar"
+                      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-[#027A68] focus:ring-1 focus:ring-[#027A68]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Password</label>
                     <input
                       type="password"
                       required
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
-                      placeholder="Enter admin password (AuriicAdmin2026!)"
-                      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      2FA TOTP Code (or leave blank for local dev)
-                    </label>
-                    <input
-                      type="text"
-                      value={adminTotp}
-                      onChange={(e) => setAdminTotp(e.target.value)}
-                      placeholder="6-digit code (e.g. 123456)"
-                      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm font-mono"
+                      placeholder="••••••••"
+                      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-[#027A68] focus:ring-1 focus:ring-[#027A68]"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-3 bg-[#027A68] hover:bg-[#01584B] text-white font-bold text-sm rounded-xl shadow-md transition-all"
+                    className="w-full py-3 bg-[#027A68] hover:bg-[#01584B] text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer"
                   >
-                    Authenticate
+                    Sign In to Portal
                   </button>
                 </form>
               </div>
