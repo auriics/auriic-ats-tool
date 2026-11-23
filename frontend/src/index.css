@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -7,69 +7,79 @@
   
   --color-brand-emerald: #027A68;
   --color-brand-emerald-dark: #01584B;
-  --color-brand-emerald-light: #E6F3F1;
+  --color-brand-emerald-light: #EBF5F3;
   --color-brand-gold: #C89C36;
   --color-brand-gold-dark: #9E7A26;
   --color-brand-gold-light: #FEF9EB;
-  --color-brand-offwhite: #F9FBFA;
-  --color-brand-bg: #F0F4F3;
-  --color-brand-dark: #1A1A1A;
+  --color-brand-offwhite: #F8FAFC;
+  --color-brand-bg: #F8FAFC;
+  --color-brand-dark: #0F172A;
 }
 
 @layer base {
   html {
     font-size: 16px;
     scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
   }
 
   body {
-    background-color: #F0F4F3;
-    color: #1A1A1A;
+    background-color: #F8FAFC;
+    color: #0F172A;
     font-family: var(--font-sans);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
-  /* Accessible focus states */
+  /* Accessible focus rings without ugly browser defaults */
   :focus-visible {
     outline: 2px solid #027A68;
     outline-offset: 2px;
   }
 
-  /* Enforce minimum touch target on buttons and interactive elements */
-  button, a, input[type="checkbox"], select {
-    min-height: 44px;
-    min-width: 44px;
+  /* Custom subtle scrollbars for code/tables */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-
-  input[type="checkbox"] {
-    min-height: 20px;
-    min-width: 20px;
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
   }
 }
 
 @layer utilities {
-  .card-surface {
+  .saas-card {
     background-color: #FFFFFF;
-    border: 1px solid rgba(2, 122, 104, 0.12);
-    border-radius: 1rem;
-    box-shadow: 0 4px 20px -2px rgba(2, 122, 104, 0.05);
+    border: 1px solid #E2E8F0;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgb(15 23 42 / 0.05), 0 1px 2px -1px rgb(15 23 42 / 0.05);
   }
 
-  .card-surface-hover {
-    transition: all 0.25s ease-in-out;
+  .saas-card-interactive {
+    transition: all 0.15s ease-in-out;
   }
 
-  .card-surface-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -4px rgba(2, 122, 104, 0.12);
-    border-color: rgba(2, 122, 104, 0.25);
+  .saas-card-interactive:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 6px -1px rgb(15 23 42 / 0.07), 0 2px 4px -2px rgb(15 23 42 / 0.07);
   }
 
-  .text-gradient-brand {
-    background: linear-gradient(135deg, #027A68 0%, #C89C36 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+  .saas-badge {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
   }
 }
