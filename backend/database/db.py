@@ -27,13 +27,18 @@ MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), "migrations")
 def init_db():
     """Ensure data directory and database schema are initialized."""
     if IS_POSTGRES:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            schema_file = os.path.join(MIGRATIONS_DIR, "001_supabase_schema.sql")
-            with open(schema_file, "r", encoding="utf-8") as f:
-                schema_sql = f.read()
-            cursor.execute(schema_sql)
-            conn.commit()
+        try:
+            with get_connection() as conn:
+                cursor = conn.cursor()
+                schema_file = os.path.join(MIGRATIONS_DIR, "001_supabase_schema.sql")
+                if os.path.exists(schema_file):
+                    with open(schema_file, "r", encoding="utf-8") as f:
+                        schema_sql = f.read()
+                    cursor.execute(schema_sql)
+                    conn.commit()
+        except Exception as e:
+            # Tables may already exist or pooler handles DDL separately
+            print(f"Supabase PostgreSQL init notice (safe to continue): {e}")
     else:
         os.makedirs(DB_DIR, exist_ok=True)
         with get_connection() as conn:

@@ -1,10 +1,40 @@
 import os
 import yaml
 import re
+import math
+from collections import Counter
 from typing import Dict, List, Any, Optional, Tuple
 from rapidfuzz import fuzz
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    HAS_SKLEARN = True
+except ImportError:
+    HAS_SKLEARN = False
+
+def _pure_tfidf_cosine(text1: str, text2: str) -> float:
+    """Pure-Python deterministic TF-IDF cosine similarity fallback."""
+    words1 = re.findall(r'\b[a-zA-Z]{2,}\b', text1.lower())
+    words2 = re.findall(r'\b[a-zA-Z]{2,}\b', text2.lower())
+    if not words1 or not words2:
+        return 0.0
+    c1 = Counter(words1)
+    c2 = Counter(words2)
+    vocabulary = set(c1.keys()).union(set(c2.keys()))
+    dot = 0.0
+    norm1 = 0.0
+    norm2 = 0.0
+    for word in vocabulary:
+        in_docs = (1 if word in c1 else 0) + (1 if word in c2 else 0)
+        idf = math.log((2.0 + 1.0) / (in_docs + 1.0)) + 1.0
+        w1 = (c1[word] / len(words1)) * idf
+        w2 = (c2[word] / len(words2)) * idf
+        dot += w1 * w2
+        norm1 += w1 * w1
+        norm2 += w2 * w2
+    denom = math.sqrt(norm1) * math.sqrt(norm2)
+    return dot / denom if denom > 0 else 0.0
 
 from backend.engine.normalizer import (
     normalize_text_unicode,
@@ -522,13 +552,16 @@ class ModeBScorer:
 
         try:
             # Deterministic TF-IDF cosine similarity
-            vectorizer = TfidfVectorizer(
-                max_features=500,
-                ngram_range=(1, 2),
-                stop_words="english",
-            )
-            tfidf_matrix = vectorizer.fit_transform([jd_text, exp_text])
-            similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+            if HAS_SKLEARN:
+                vectorizer = TfidfVectorizer(
+                    max_features=500,
+                    ngram_range=(1, 2),
+                    stop_words="english",
+                )
+                tfidf_matrix = vectorizer.fit_transform([jd_text, exp_text])
+                similarity = float(cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0])
+            else:
+                similarity = _pure_tfidf_cosine(jd_text, exp_text)
             
             # Map cosine similarity (typically 0.10 to 0.60 for resume vs JD) to points
             # 0.40+ is excellent (10 pts), 0.25-0.40 is good (7-9 pts), <0.20 needs improvement

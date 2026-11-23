@@ -1,9 +1,11 @@
-# Production Deployment Guide: Vercel (Frontend) + Supabase (Database) + Free Backend
+# Production Deployment Guide: All-in-One on Vercel + Supabase Database
 
-This guide walks you through deploying the **Auriic Free ATS Resume Checker** with a 100% free cloud architecture:
-- **Frontend**: [Vercel](https://vercel.com) (hosted on `https://ats.auriic.co`)
-- **Database**: [Supabase](https://supabase.com) (PostgreSQL Free Tier — 500MB DB, automatic backups)
-- **Backend**: Free Python Web Service on [Render](https://render.com) (or [Koyeb](https://koyeb.com))
+This guide explains how to deploy the **Auriic Free ATS Resume Checker** with **Frontend AND Backend running together on Vercel ONLY**, connected to a persistent **Supabase PostgreSQL** database.
+
+- **Frontend**: [Vercel](https://vercel.com) (React 18 + Vite static build)
+- **Backend**: [Vercel](https://vercel.com) (Python 3.12 FastAPI Serverless Function at `/api/*`)
+- **Database**: [Supabase](https://supabase.com) (Free PostgreSQL database — 500MB, automatic backups, persistent)
+- **Domain**: `https://ats.auriic.co` (All on one single domain, NO CORS errors, NO second host)
 
 ---
 
@@ -17,15 +19,11 @@ This guide walks you through deploying the **Auriic Free ATS Resume Checker** wi
                                                │
                                                ▼
                         ┌──────────────────────────────────────────────┐
-                        │             VERCEL (Frontend)                │
-                        │          React 18 + Vite + Tailwind          │
-                        └──────────────────────┬───────────────────────┘
-                                               │ API Requests (/api/*)
-                                               ▼
-                        ┌──────────────────────────────────────────────┐
-                        │          RENDER / KOYEB (Backend)            │
-                        │           FastAPI (Python 3.12)              │
-                        │     PyMuPDF + RapidFuzz + Scoring Engine     │
+                        │               VERCEL (All-in-One)            │
+                        │                                              │
+                        │  1. Frontend: React 18 + Vite (dist/)        │
+                        │  2. Backend:  FastAPI in /api/index.py       │
+                        │     (PyMuPDF + RapidFuzz + ReportLab)        │
                         └──────────────────────┬───────────────────────┘
                                                │ DATABASE_URL (SSL)
                                                ▼
@@ -41,139 +39,167 @@ This guide walks you through deploying the **Auriic Free ATS Resume Checker** wi
 ## STEP 1: Set Up Supabase (Database) — ~2 Minutes
 
 1. **Create Free Project**:
-   - Go to [supabase.com](https://supabase.com) and click **Sign In** (or Sign Up with GitHub).
-   - Click **New Project**.
-   - **Name**: `auriic-ats-db`
-   - **Database Password**: Set a strong password (save this!).
-   - **Region**: Choose **East US (N. Virginia)** or the region closest to your users.
-   - Click **Create new project**.
+   - Go to [supabase.com](https://supabase.com) and sign in.
+   - Click **New Project**:
+     - **Name**: `auriic-ats-db`
+     - **Database Password**: Choose a strong password and save it!
+     - **Region**: Select **East US** (or closest to your users).
+     - Click **Create new project**.
 
 2. **Run the Database Schema**:
-   - In your Supabase project dashboard, click **SQL Editor** (left menu icon).
+   - Click **SQL Editor** on the left menu (terminal icon `>_`).
    - Click **+ New query**.
-   - Copy the entire SQL script from this file in your repository:
-     `backend/database/migrations/001_supabase_schema.sql`
-   - Paste it into the SQL Editor and click the green **Run** button (bottom right).
-   - You should see `Success. No rows returned`.
-   - Click **Table Editor** on the left menu: you will now see `ats_leads`, `ats_submissions`, `ats_audit_logs`, and `ats_deletion_requests`.
+   - Copy and paste the entire script from `backend/database/migrations/001_supabase_schema.sql` into the SQL Editor:
+     ```sql
+     -- 1. Table: ats_leads (One row per person, keyed by email)
+     CREATE TABLE IF NOT EXISTS ats_leads (
+         id BIGSERIAL PRIMARY KEY,
+         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+         full_name TEXT NOT NULL,
+         email TEXT NOT NULL UNIQUE,
+         phone TEXT,
+         location TEXT,
+         linkedin_url TEXT,
+         detected_industry TEXT,
+         user_selected_industry TEXT,
+         detected_job_titles TEXT,
+         top_skills TEXT,
+         years_of_experience INTEGER DEFAULT 0,
+         education_level TEXT,
+         certifications TEXT,
+         utm_source TEXT,
+         utm_medium TEXT,
+         utm_campaign TEXT,
+         referrer TEXT,
+         device_type TEXT,
+         consent_given BOOLEAN NOT NULL DEFAULT FALSE,
+         consent_marketing BOOLEAN NOT NULL DEFAULT FALSE,
+         consent_text_version TEXT NOT NULL DEFAULT '1.0',
+         consent_timestamp TIMESTAMPTZ,
+         ip_hash TEXT,
+         lead_status TEXT NOT NULL DEFAULT 'new',
+         lead_score_category TEXT DEFAULT 'cold',
+         lead_score_reason TEXT,
+         assigned_to TEXT,
+         notes TEXT,
+         deleted_at TIMESTAMPTZ,
+         purge_after TIMESTAMPTZ
+     );
 
-3. **Get Your Connection String**:
-   - In Supabase, go to **Project Settings** (gear icon) → **Database**.
-   - Scroll down to **Connection string**.
-   - Select the **URI** tab:
+     CREATE INDEX IF NOT EXISTS idx_ats_leads_email ON ats_leads(email);
+     CREATE INDEX IF NOT EXISTS idx_ats_leads_created_at ON ats_leads(created_at);
+     CREATE INDEX IF NOT EXISTS idx_ats_leads_industry ON ats_leads(detected_industry);
+     CREATE INDEX IF NOT EXISTS idx_ats_leads_status ON ats_leads(lead_status);
+     CREATE INDEX IF NOT EXISTS idx_ats_leads_score_cat ON ats_leads(lead_score_category);
+
+     -- 2. Table: ats_submissions (Multiple scans per lead)
+     CREATE TABLE IF NOT EXISTS ats_submissions (
+         id BIGSERIAL PRIMARY KEY,
+         lead_id BIGINT REFERENCES ats_leads(id) ON DELETE CASCADE,
+         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+         mode TEXT NOT NULL,
+         scoring_version TEXT NOT NULL,
+         ats_score DOUBLE PRECISION NOT NULL,
+         score_label TEXT NOT NULL,
+         category_scores TEXT,
+         top_missing_keywords TEXT,
+         job_description_text TEXT,
+         jd_title TEXT,
+         resume_file_path TEXT,
+         extracted_text TEXT,
+         resume_hash TEXT NOT NULL,
+         deductions_json TEXT,
+         is_anonymous BOOLEAN NOT NULL DEFAULT FALSE
+     );
+
+     CREATE INDEX IF NOT EXISTS idx_ats_sub_lead_id ON ats_submissions(lead_id);
+     CREATE INDEX IF NOT EXISTS idx_ats_sub_created_at ON ats_submissions(created_at);
+     CREATE INDEX IF NOT EXISTS idx_ats_sub_score ON ats_submissions(ats_score);
+     CREATE INDEX IF NOT EXISTS idx_ats_sub_hash ON ats_submissions(resume_hash);
+
+     -- 3. Table: ats_audit_logs (Staff activity logging)
+     CREATE TABLE IF NOT EXISTS ats_audit_logs (
+         id BIGSERIAL PRIMARY KEY,
+         timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+         actor TEXT NOT NULL,
+         action TEXT NOT NULL,
+         target_lead_id BIGINT,
+         details TEXT
+     );
+
+     -- 4. Table: ats_deletion_requests (Right to be Forgotten)
+     CREATE TABLE IF NOT EXISTS ats_deletion_requests (
+         id BIGSERIAL PRIMARY KEY,
+         email TEXT NOT NULL,
+         verification_token TEXT NOT NULL UNIQUE,
+         status TEXT NOT NULL DEFAULT 'pending',
+         requested_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+         completed_at TIMESTAMPTZ
+     );
+     ```
+   - Click the green **Run** button (bottom right).
+   - In the left menu, click **Table Editor**: you will see `ats_leads`, `ats_submissions`, `ats_audit_logs`, and `ats_deletion_requests`.
+
+3. **Copy your Database Connection String**:
+   - Go to **Project Settings** (gear icon) → **Database**.
+   - Under **Connection string**, select the **URI** tab:
      ```text
      postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
      ```
-     *(Or select **Connection Pooling** (Port 6543) if preferred).*
-   - Replace `[YOUR-PASSWORD]` with your actual database password.
-   - **Copy this URL** — you will use it as `DATABASE_URL`.
+     *(Or choose **Connection Pooling** port 6543 if preferred).*
+   - Replace `[YOUR-PASSWORD]` with the password you set in step 1.
+   - **Copy this URL** — this is your `DATABASE_URL`.
 
 ---
 
-## STEP 2: Deploy the Backend for FREE on Render — ~3 Minutes
+## STEP 2: Deploy Frontend + Backend on Vercel Only — ~2 Minutes
 
-[Render](https://render.com) provides a free Python Web Service that runs FastAPI with full PyMuPDF and ReportLab support without serverless timeout limits.
+Because the repository includes `vercel.json` and `api/index.py`, Vercel builds BOTH the React frontend and the Python serverless API inside the exact same project!
 
-1. **Sign Up / Log In**:
-   - Go to [render.com](https://render.com) and sign in with GitHub.
-
-2. **Create New Web Service**:
-   - In Render Dashboard, click **New +** → **Web Service**.
-   - Select **Build and deploy from a Git repository**.
-   - Connect your repository: `auriics/auriic-ats-tool`.
-
-3. **Configure the Service**:
-   - **Name**: `auriic-ats-backend`
-   - **Region**: US East (Ohio or Oregon)
-   - **Branch**: `main`
-   - **Root Directory**: *(leave blank)*
-   - **Runtime**: `Python 3`
-   - **Build Command**:
-     ```bash
-     pip install -r backend/requirements.txt
-     ```
-   - **Start Command**:
-     ```bash
-     PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port $PORT
-     ```
-   - **Instance Type**: Select **Free** ($0/month).
-
-4. **Add Environment Variables**:
-   Click **Advanced** → **Add Environment Variable** and add:
-
-   | Key | Value |
-   | :--- | :--- |
-   | `DATABASE_URL` | Your Supabase connection string from Step 1 |
-   | `AURIIC_STORAGE_SECRET` | Any random 32-character string (e.g. `auriic_prod_hmac_2026_xyz987654321`) |
-   | `AURIIC_ADMIN_PASSWORD` | `AuriicAdmin2026!` (or your chosen staff password) |
-   | `AURIIC_ADMIN_TOTP_SECRET` | `JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP` |
-   | `PYTHON_VERSION` | `3.12.0` |
-
-5. **Deploy**:
-   - Click **Create Web Service**.
-   - Render will build dependencies and start FastAPI.
-   - Once live, you will get your backend URL, for example:
-     `https://auriic-ats-backend.onrender.com`
-   - Test it by visiting: `https://auriic-ats-backend.onrender.com/docs` (you will see the interactive Swagger API documentation).
-
----
-
-## STEP 3: Deploy Frontend on Vercel (`ats.auriic.co`) — ~2 Minutes
-
-1. **Open Vercel**:
+1. **Open Vercel Dashboard**:
    - Go to [vercel.com/dashboard](https://vercel.com/dashboard).
-   - Open your project that has `ats.auriic.co` attached.
-   - Go to **Settings** → **Git** and ensure `auriics/auriic-ats-tool` is connected.
+   - Open your project where domain `ats.auriic.co` is attached.
+   - (Or click **Add New...** → **Project** → select `auriics/auriic-ats-tool`).
 
-2. **Build Settings**:
+2. **Verify Project Settings**:
    In Vercel **Settings** → **General**:
    - **Framework Preset**: `Vite`
-   - **Build Command**: `cd frontend && npm install && npm run build`
-   - **Output Directory**: `frontend/dist`
+   - **Root Directory**: `./` (leave default)
+   - **Build Command**: `cd frontend && npm install && npm run build` *(pre-configured in `vercel.json`)*
+   - **Output Directory**: `frontend/dist` *(pre-configured in `vercel.json`)*
 
-3. **Add Environment Variable for Backend URL**:
-   In Vercel **Settings** → **Environment Variables**:
-   - **Key**: `VITE_API_BASE`
-   - **Value**: `https://auriic-ats-backend.onrender.com` *(your Render backend URL from Step 2)*
-   - Click **Save**.
+3. **Add Environment Variables**:
+   In Vercel **Settings** → **Environment Variables**, add the following 4 variables:
 
-4. **Trigger Deployment**:
+   | Key | Value | Purpose |
+   | :--- | :--- | :--- |
+   | `DATABASE_URL` | Your Supabase connection string from Step 1 | Connects backend to Supabase PostgreSQL |
+   | `AURIIC_STORAGE_SECRET` | `auriic_prod_hmac_2026_xyz987654321` | Signs HMAC download URLs |
+   | `AURIIC_ADMIN_PASSWORD` | `AuriicAdmin2026!` | Password for staff access |
+   | `AURIIC_ADMIN_TOTP_SECRET` | `JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP` | 2FA Authenticator secret |
+
+4. **Deploy**:
    - Go to the **Deployments** tab in Vercel.
    - Click **Redeploy** on the latest commit (or push a commit to `main`).
-   - Vercel will build the frontend and deploy to `https://ats.auriic.co`.
+   - Vercel will:
+     1. Build the React frontend into `frontend/dist`.
+     2. Install Python packages from `requirements.txt`.
+     3. Package `api/index.py` as a serverless function with `backend/**` assets.
+     4. Point `https://ats.auriic.co` to the build.
 
 ---
 
-## STEP 4: Verification & Live Testing
+## STEP 3: Verify the Live System
 
 1. **Visit `https://ats.auriic.co`**:
-   - Check that the official AURIIC logo displays clearly in the header.
-   - Note the Data Storage Consent notice in the clean footer.
-   - Verify that NO "Admin" links are visible anywhere on the public page.
-
-2. **Test Mode A (General ATS Health Score)**:
-   - Upload any sample resume (PDF, DOCX, or TXT).
-   - Check the consent box.
-   - Click **Analyze Resume Compatibility**.
-   - Confirm score, breakdown, deduction evidence, and prioritized fixes appear.
-   - Click **Download PDF Report** to verify the branded ReportLab PDF downloads with the logo.
-
-3. **Verify Data in Supabase**:
+   - The UI loads directly with the official AURIIC logo.
+   - Test **Mode A** (upload a resume, check consent, click Analyze).
+   - Test **Mode B** (upload a resume + paste a job description).
+   - Click **Download PDF Report** to verify the branded PDF report downloads.
+2. **Verify Permanent Data in Supabase**:
    - Open your [Supabase Dashboard](https://supabase.com).
-   - Click **Table Editor** → `ats_leads`.
-   - You will see the candidate's name, email, phone, detected industry, skills, and lead score category (`HOT`, `WARM`, `COLD`) saved permanently!
-   - Click `ats_submissions` to see the full breakdown and score history.
-
-4. **Access the Hidden Staff Portal**:
-   - In your browser, navigate to: `https://ats.auriic.co/#staff`
-   - Enter your staff password (`AuriicAdmin2026!`) and TOTP 2FA code.
-   - View the lead pipeline, filter by industry, download reports, or export to CSV.
-
----
-
-## 💡 Keeping the Free Backend Awake (Optional Tip)
-
-Render's free tier spins down after 15 minutes of inactivity and takes ~30 seconds to wake up on the first request. To keep it warm 24/7 for free:
-- Go to [cron-job.org](https://cron-job.org) or [uptimerobot.com](https://uptimerobot.com) (free).
-- Create a ping monitor for `https://auriic-ats-backend.onrender.com/docs` every 10 minutes.
-- This ensures your ATS checker backend responds instantly with zero cold-start delay!
+   - Click **Table Editor** → `ats_leads`: You will see the applicant's name, email, phone, detected industry, skills, and lead score (`HOT`/`WARM`/`COLD`) stored permanently!
+   - Click `ats_submissions`: You will see the score history, category breakdown, and full extracted text.
+3. **Access Staff Portal**:
+   - Go to `https://ats.auriic.co/#staff`.
+   - Log in with `AuriicAdmin2026!` and 2FA code to view leads, filter candidates, and export CSVs.
